@@ -39,53 +39,80 @@ class ws2812b:
             brightness = 255
         self.brightnessvalue = brightness
 
-      # Create a gradient with two RGB colors between "pixel1" and "pixel2" (inclusive)
-    def set_pixel_line_gradient(self, pixel1, pixel2, left_red, left_green, left_blue, right_red, right_green, right_blue):
+    # Create a gradient with two RGB colors between "pixel1" and "pixel2" (inclusive)
+    # Function accepts two (r, g, b) tuples or individual rgb values
+    def set_pixel_line_gradient(self, pixel1, pixel2, left_red_or_rgb1, left_green_or_rgb2, left_blue=0, right_red=0, right_green=0, right_blue=0):
         if pixel2 - pixel1 == 0: return
+        if type(left_red_or_rgb1) is not tuple:
+            left_rgb = (left_red_or_rgb1, left_green_or_rgb2, left_blue)
+            right_rgb = (right_red, right_green, right_blue)
+        else:
+            left_rgb = left_red_or_rgb1
+            right_rgb = left_green_or_rgb2
     
         right_pixel = max(pixel1, pixel2)
         left_pixel = min(pixel1, pixel2)
         
         for i in range(right_pixel - left_pixel + 1):
             fraction = i / (right_pixel - left_pixel)
-            red = round((right_red - left_red) * fraction + left_red)
-            green = round((right_green - left_green) * fraction + left_green)
-            blue = round((right_blue - left_blue) * fraction + left_blue)
+            red = round((right_rgb[0] - left_rgb[0]) * fraction + left_rgb[0])
+            green = round((right_rgb[1] - left_rgb[1]) * fraction + left_rgb[1])
+            blue = round((right_rgb[2] - left_rgb[2]) * fraction + left_rgb[2])
             
-            self.set_pixel(left_pixel + i, red, green, blue)
-    
-      # Set an array of pixels starting from "pixel1" to "pixel2" to the desired color.
-    def set_pixel_line(self, pixel1, pixel2, red, green, blue):
-        for i in range(pixel1, pixel2+1):
-            self.set_pixel(i, red, green, blue)
+            self.set_pixel(left_pixel + i, (red, green, blue))
 
-    def set_pixel(self, pixel_num, red, green, blue):
-        # Adjust color values with brightnesslevel
-        blue = round(blue * (self.brightness() / 255))
-        red = round(red * (self.brightness() / 255))
-        green = round(green * (self.brightness() / 255))
+    # Set an array of pixels starting from "pixel1" to "pixel2" to the desired color.
+    # Function accepts (r, g, b) tuple or individual rgb values
+    def set_pixel_line(self, pixel1, pixel2, rgb_or_red, green=0, blue=0):
+        if type(rgb_or_red) is not tuple:
+            rgb = (rgb_or_red, green, blue)
+        else:
+            rgb = rgb_or_red
+
+        for i in range(pixel1, pixel2+1):
+            self.set_pixel(i, rgb)
+
+    # Set red, green and blue value of pixel on position <pixel_num>
+    # Function accepts (r, g, b) tuple or individual rgb values
+    def set_pixel(self, pixel_num, rgb_or_red, green=0, blue=0):
+        if type(rgb_or_red) is not tuple:
+            rgb = (rgb_or_red, green, blue)
+        else:
+            rgb = rgb_or_red
+
+        red = round(rgb[0] * (self.brightness() / 255))
+        green = round(rgb[1] * (self.brightness() / 255))
+        blue = round(rgb[2] * (self.brightness() / 255))
 
         self.pixels[pixel_num] = blue | red << 8 | green << 16
-    
-    # rotate x pixels to the left
+
+    # Rotate <num_of_pixels> pixels to the left
     def rotate_left(self, num_of_pixels):
         if num_of_pixels == None:
             num_of_pixels = 1
         self.pixels = self.pixels[num_of_pixels:] + self.pixels[:num_of_pixels]
 
-    # rotate x pixels to the right
+    # Rotate <num_of_pixels> pixels to the right
     def rotate_right(self, num_of_pixels):
         if num_of_pixels == None:
             num_of_pixels = 1
         num_of_pixels = -1 * num_of_pixels
         self.pixels = self.pixels[num_of_pixels:] + self.pixels[:num_of_pixels]
 
+    # Update pixels
     def show(self):
         for i in range(self.num_leds):
             self.sm.put(self.pixels[i],8)
         time.sleep(self.delay)
-            
-    def fill(self, red, green, blue):
+
+    # Set all pixels to given rgb values
+    # Function accepts (r, g, b) tuple or individual rgb values
+    def fill(self, rgb_or_red, green=0, blue=0):
+        if type(rgb_or_red) is not tuple:
+            rgb = (rgb_or_red, green, blue)
+        else:
+            rgb = rgb_or_red
+
         for i in range(self.num_leds):
-            self.set_pixel(i, red, green, blue)
+            self.set_pixel(i, rgb)
         time.sleep(self.delay)
