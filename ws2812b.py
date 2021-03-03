@@ -61,7 +61,7 @@ class ws2812b:
             
             self.set_pixel(left_pixel + i, (red, green, blue))
 
-    # Set an array of pixels starting from "pixel1" to "pixel2" to the desired color.
+    # Set an array of pixels starting from "pixel1" to "pixel2" (inclusive) to the desired color.
     # Function accepts (r, g, b) tuple or individual rgb values
     def set_pixel_line(self, pixel1, pixel2, rgb_or_red, green=0, blue=0):
         if type(rgb_or_red) is not tuple:
@@ -69,7 +69,7 @@ class ws2812b:
         else:
             rgb = rgb_or_red
 
-        for i in range(pixel1, pixel2+1):
+        for i in range(pixel1, pixel2 + 1):
             self.set_pixel(i, rgb)
 
     # Set red, green and blue value of pixel on position <pixel_num>
